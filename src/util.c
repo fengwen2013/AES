@@ -1,5 +1,31 @@
 #include "util.h"
 
+char *substr(char *s, int position, int length){
+	char *p = malloc(length + 1);
+	int i = 0;
+	
+	if(p == NULL){
+		fprintf(stderr, "Unable to allocate memory!\n");
+		return NULL;
+	}
+	
+
+	
+	while(i < position){
+		s++;
+		i++;
+	}
+	
+	for(; i < length && i < strlen(s); i++){
+		*(p + i) = *(s++);
+	}
+	
+	*(p + i) = '\0';
+	
+	return p;
+}
+
+
 int optionCheck(char *option, char *check){
 	int clen = strlen(check);
 	int olen = strlen(option); 

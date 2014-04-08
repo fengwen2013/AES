@@ -72,7 +72,7 @@ void keyexpandCommand(char *argv[], int argc){
 		while(i < argc){
 			if(optionCheck(argv[i], "-k") == 1){
 				key = (unsigned char *)malloc(sizeof(char) * 16);	
-				if(keycheck(argv[i] + 3, key) == -1){
+				if(keycheck(argv[i] + 3, key, 32) == -1){
 					return;
 				}
 			}
@@ -109,7 +109,7 @@ void cryptCommand(char *argv[], int argc, int mode){
 		while(i < argc){
 			if(optionCheck(argv[i], "-k") == 1){
 				key = (unsigned char *)malloc(sizeof(char) * 16);	
-				if(keycheck(argv[i] + 3, key) == -1){
+				if(keycheck(argv[i] + 3, key, 32) == -1){
 					return;
 				}
 			}
@@ -227,8 +227,8 @@ int hexcheck(char c, char *c1){
 	return 1;
 }
 
-int keycheck(char *src, unsigned char *key){
-	int len = 32;
+int keycheck(char *src, unsigned char *key, int len){
+
 	int i = 0;
 	char high = 0;
 	char low = 0;

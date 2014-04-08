@@ -17,8 +17,9 @@ void cryptCommand(char *argv[], int argc, int mode);
 void inverseCommand(char *argv[], int argc);
 
 int hexcheck(char c, char *c1);
-int keycheck(char *src, unsigned char *key);
+int keycheck(char *src, unsigned char *key, int len);
+void modularProduct(unsigned char a[], unsigned char b[], unsigned char d[]);
 
-extern char S[256];
-extern long unsigned P;
-extern long unsigned INVP;
+extern unsigned char S[256];
+extern unsigned char P[4];
+extern unsigned char INVP[4];

@@ -61,7 +61,7 @@ void printProduct(unsigned char a[], unsigned char b[], unsigned char d[]){
 void rightRotateArray(unsigned char a[], int len){
 	int lastElement = a[len - 1];
 	int i = 0;
-	for(i = len - 1; i >= 0; i--){
+	for(i = len - 2; i >= 0; i--){
 		a[i + 1] = a[i];
 	}
 	a[0] = lastElement;

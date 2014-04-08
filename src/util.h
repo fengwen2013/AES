@@ -7,3 +7,4 @@
 
 FILE* openFile(char *fileName);
 int optionCheck(char *option, char *check);
+char *substr(char *s, int position, int length);
