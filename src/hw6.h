@@ -2,6 +2,9 @@
 #define ENCRYPT 0
 #define DECRYPT 1
 #define M_X		0x1b
+#define NK		4
+#define NB		4
+#define NR		10
 
 int tablecheck(FILE *ifp);
 void modprod(long unsigned poly1, long unsigned poly2);
@@ -19,6 +22,7 @@ void inverseCommand(char *argv[], int argc);
 int hexcheck(char c, char *c1);
 int keycheck(char *src, unsigned char *key, int len);
 void modularProduct(unsigned char a[], unsigned char b[], unsigned char d[]);
+unsigned char polyProduct(unsigned char a, unsigned char b);
 
 extern unsigned char S[256];
 extern unsigned char P[4];
