@@ -1,6 +1,12 @@
 #include "hw6.h"
 
-int checkRem(unsigned char rem){
+void addNumToTemp(unsigned char temp[], int length, unsigned char num){
+	leftRotWord(temp, 4);
+	temp[3] = num;
+}
+
+
+int checkRem(unsigned char rem[]){
 	int i = 0;
 	
 	for(i = 0; i < 4; i++){
@@ -12,12 +18,12 @@ int checkRem(unsigned char rem){
 	return -1;
 }
 
-long unsigned arrayToLong(unsigned char aux){
+long unsigned arrayToLong(unsigned char aux[]){
 	long unsigned inverse = 0;
 	int i = 0;
 	
 	for(i = 0; i < 4; i++){
-		inverse = (inverse << 8) + inverse[3 - i];
+		inverse = (inverse << 8) + aux[3 - i];
 	}
 	
 	return inverse;
@@ -66,46 +72,116 @@ unsigned char polyInverse(unsigned char poly){
 	
 }
 
-void moduleDiv(unsigned char rem[], unsigned char dividend[], unsigned divisor[], unsigned char quo[]){
+void tempGen(int hp_ds, int hp_dd, unsigned char dividend[], unsigned char temp[], unsigned char temp_product[]){
+	int i = 0;
+	
+	for(i = 0; i <= hp_ds; i++){
+		temp[i] = dividend[hp_dd - hp_ds + i];
+	}
+	
+	for(; i < 4; i++){
+		temp[i] = 0;
+	}
+	
+	byteArrayXOR(temp, temp, temp_product, 4);
+}
+
+void tempProductGen(int hp_ds, unsigned char divisor[], unsigned char quo, unsigned char temp_product[]){
+	int i = 0;
+	
+	for(i = 0; i < hp_ds; i++){
+		temp_product[i] = polyProduct(divisor[i], quo);
+	}
+	
+	for(; i < 4; i++){
+		temp_product[i] = 0;
+	}
+}
+
+int findHighestPower(unsigned char a[]){
+	int i = 0;
+	
+	if(a[0] == 0){
+		return 0;
+	}
+	
+	for(i = 0; i < 4; i++){
+		if(a[i] == 0){
+			return i - 1;
+		}
+	}
+	
+	return i;
+}
+
+void moduleDiv(unsigned char rem[], unsigned char dividend[], unsigned char divisor[], unsigned char quo[]){
+	int hp_ds = 0;
+	int hp_dd = 0;
+	int hp_temp = 0;
+	unsigned char temp[4] = {0, 0, 0, 0};
+	unsigned char temp_product[4];
+	unsigned char dd[4];
+	unsigned char inverse = 0;
+	unsigned char t2 = 0;
+	int i = 0;
+	
 	quo[0] = quo[1] = 0;
+
+	hp_ds = findHighestPower(divisor);
+	hp_dd = findHighestPower(dividend);
+	inverse = polyInverse(divisor[hp_ds]);
+	t2 = dividend[hp_dd];
+	byteArrayCopy(dd, dividend, 4);
+	
+	for(i = 0; hp_ds <= hp_dd;){
+		quo[i] = polyProduct(inverse,t2);
+		tempProductGen(hp_ds, divisor, quo[i], temp_product);
+		tempGen(hp_ds, hp_dd, dd, temp, temp_product);
+		addNumToTemp(temp, 4, dividend[hp_dd - hp_ds]);
+		hp_temp = findHighestPower(temp);
+		if(hp_ds - hp_temp > 1){
+			quo[i + 1] = 0;
+			
+			break;
+		}
+		else{
+			i++;
+			hp_dd--;
+			t2 = temp[hp_temp];
+			byteArrayCopy(dd, temp, 4);
+		}	
+	}
+	byteArrayCopy(rem, temp, 4);
 }
 
 void computeAus(unsigned char aux_i[], unsigned char aux_i2[], unsigned char aux_i1[], unsigned char quo[]){
 	unsigned char temp[4];
-	moduleProduct(quo, aux_i1, temp);
+	modularProduct(quo, aux_i1, temp);
 	byteArrayXOR(aux_i, aux_i2, temp, 4);
 }
 
+
+
 void initiate(unsigned char rem[][4], unsigned char quo[][4], unsigned char aux[][4], long unsigned poly){
-	unsigned char temp[4];
-	unsigned char oneByteQuo[4] = {0, 0, 0, 0};
-	unsigned char temp_product[4] = {1, 0, 0, 0};
+	unsigned char temp_product[5] = {1, 0, 0, 0, 1};
 	
 	longToArray(1, rem[0]);
+	longToArray(1, rem[5]);
 	longToArray(poly, rem[1]);
 	longToArray(0, aux[0]);
 	longToArray(1, aux[1]);
 	longToArray(0, quo[0]);
 	longToArray(0, quo[1]);
 	
-	quo[1] = polyInverse(rem[1][3]);
-	oneByteQuo[3] = quo[1];
-	moduleProduct(oneByteQuo, rem[1], temp);
-	byteArrayXOR(temp, temp, temp_product);
-	
-	tempProductGen(temp_product, rem[0][0]);
-	if(temp_product[3] == 0){
-		byteArrayCopy(rem[2], temp_product, 4);
-		quo[0] = 0;
-	}
-	else{
-		quo[0] = polyInverse(temp_product[3]);
-		oneByteQuo[0] = quo[0];
-		moduleProduct(oneByteQuo, rem[1], temp);
-		byteArrayXOR(temp, temp, temp_product);
-		byteArrayCopy(rem[2], temp, 4);
-	}
+	moduleDiv(rem[2], temp_product, rem[1], quo[2]);
 }
+
+void computeSixthQuo(unsigned char quo[], unsigned char dividend[], unsigned char divisor[]){
+	unsigned char inverse = polyInverse(divisor[0]);
+	quo[0] = polyProduct(inverse, dividend[1]);
+	quo[1] = polyProduct(inverse, (dividend[0] ^ 01));
+}
+
 
 long unsigned tableMethod(long unsigned poly, int mode){
 	unsigned char rem[6][4];
@@ -115,8 +191,6 @@ long unsigned tableMethod(long unsigned poly, int mode){
 	
 	initiate(rem, quo, aux, poly);
 
-	
-	
 	for(i = 3; i < 6; i++){
 		if(i == 5){
 			longToArray(1, rem[i]);
@@ -131,7 +205,6 @@ long unsigned tableMethod(long unsigned poly, int mode){
 	
 		computeAus(aux[i], aux[i - 2], aux[i - 1], quo[i]);
 	}
-	
 	
 	
 	if(mode == TRACE_PRINT){
