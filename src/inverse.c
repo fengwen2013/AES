@@ -1,8 +1,15 @@
 #include "hw6.h"
 
+void rightRotWord(unsigned char temp[], int length){
+	int i = 0;
+	for(i = length - 1; i > 0; i--){
+		temp[i] = temp[i - 1];
+	}
+}
+
 void addNumToTemp(unsigned char temp[], int length, unsigned char num){
-	leftRotWord(temp, 4);
-	temp[3] = num;
+	rightRotWord(temp, 4);
+	temp[0] = num;
 }
 
 
@@ -74,9 +81,13 @@ unsigned char polyInverse(unsigned char poly){
 
 void tempGen(int hp_ds, int hp_dd, unsigned char dividend[], unsigned char temp[], unsigned char temp_product[]){
 	int i = 0;
+	int offset = 0;
+	if(hp_dd < 4){
+		offset = hp_dd - hp_ds;
+	}
 	
 	for(i = 0; i <= hp_ds; i++){
-		temp[i] = dividend[hp_dd - hp_ds + i];
+		temp[i] = dividend[offset + i];
 	}
 	
 	for(; i < 4; i++){
@@ -89,7 +100,7 @@ void tempGen(int hp_ds, int hp_dd, unsigned char dividend[], unsigned char temp[
 void tempProductGen(int hp_ds, unsigned char divisor[], unsigned char quo, unsigned char temp_product[]){
 	int i = 0;
 	
-	for(i = 0; i < hp_ds; i++){
+	for(i = 0; i <= hp_ds; i++){
 		temp_product[i] = polyProduct(divisor[i], quo);
 	}
 	
@@ -98,57 +109,65 @@ void tempProductGen(int hp_ds, unsigned char divisor[], unsigned char quo, unsig
 	}
 }
 
-int findHighestPower(unsigned char a[]){
+int findHighestPower(unsigned char a[], int length){
 	int i = 0;
 	
-	if(a[0] == 0){
-		return 0;
-	}
-	
-	for(i = 0; i < 4; i++){
-		if(a[i] == 0){
-			return i - 1;
+	for(i = length - 1; i >= 0; i--){
+		if(a[i] != 0){
+			return i;
 		}
 	}
 	
-	return i;
+	return 0;
 }
 
-void moduleDiv(unsigned char rem[], unsigned char dividend[], unsigned char divisor[], unsigned char quo[]){
+void moduleDiv(unsigned char rem[], unsigned char dividend[], unsigned char divisor[], unsigned char quo[], int stage){
 	int hp_ds = 0;
 	int hp_dd = 0;
 	int hp_temp = 0;
 	unsigned char temp[4] = {0, 0, 0, 0};
 	unsigned char temp_product[4];
-	unsigned char dd[4];
+	unsigned char dd[4] = {0, 0, 0, 1};
 	unsigned char inverse = 0;
 	unsigned char t2 = 0;
 	int i = 0;
 	
-	quo[0] = quo[1] = 0;
+	quo[3] = quo[2] = 0;
 
-	hp_ds = findHighestPower(divisor);
-	hp_dd = findHighestPower(dividend);
+	hp_ds = findHighestPower(divisor, 4);
+	if(stage == 2){
+		hp_dd = 4;
+	}
+	else{
+		hp_dd = findHighestPower(dividend, 4);
+	}
 	inverse = polyInverse(divisor[hp_ds]);
 	t2 = dividend[hp_dd];
-	byteArrayCopy(dd, dividend, 4);
 	
-	for(i = 0; hp_ds <= hp_dd;){
+	if(hp_dd <= 3){
+		byteArrayCopy(dd, dividend, 4);
+	}
+	i = 1;
+	while(1){
 		quo[i] = polyProduct(inverse,t2);
 		tempProductGen(hp_ds, divisor, quo[i], temp_product);
 		tempGen(hp_ds, hp_dd, dd, temp, temp_product);
-		addNumToTemp(temp, 4, dividend[hp_dd - hp_ds]);
-		hp_temp = findHighestPower(temp);
-		if(hp_ds - hp_temp > 1){
+		
+		hp_temp = findHighestPower(temp, 4);
+		if(hp_ds - hp_temp > 1 && hp_dd > hp_ds){
 			quo[i + 1] = 0;
-			
 			break;
 		}
-		else{
-			i++;
+		
+		if(hp_ds < hp_dd){
+			i--;
 			hp_dd--;
-			t2 = temp[hp_temp];
+			addNumToTemp(temp, 4, dividend[hp_dd - hp_ds]);
+			t2 = temp[hp_temp + 1];
 			byteArrayCopy(dd, temp, 4);
+		}
+		else{
+			break;
 		}	
 	}
 	byteArrayCopy(rem, temp, 4);
@@ -173,13 +192,14 @@ void initiate(unsigned char rem[][4], unsigned char quo[][4], unsigned char aux[
 	longToArray(0, quo[0]);
 	longToArray(0, quo[1]);
 	
-	moduleDiv(rem[2], temp_product, rem[1], quo[2]);
+	moduleDiv(rem[2], temp_product, rem[1], quo[2], 2);
+	computeAus(aux[2], aux[0], aux[1], quo[2]);
 }
 
 void computeSixthQuo(unsigned char quo[], unsigned char dividend[], unsigned char divisor[]){
 	unsigned char inverse = polyInverse(divisor[0]);
-	quo[0] = polyProduct(inverse, dividend[1]);
-	quo[1] = polyProduct(inverse, (dividend[0] ^ 01));
+	quo[1] = polyProduct(inverse, dividend[1]);
+	quo[0] = polyProduct(inverse, (dividend[0] ^ 01));
 }
 
 
@@ -192,15 +212,15 @@ long unsigned tableMethod(long unsigned poly, int mode){
 	initiate(rem, quo, aux, poly);
 
 	for(i = 3; i < 6; i++){
+		if(checkRem(rem[i - 1]) == -1){
+			break;
+		}
 		if(i == 5){
 			longToArray(1, rem[i]);
 			computeSixthQuo(quo[i], rem[i - 2], rem[i - 1]);
 		}
 		else{
-			moduleDiv(rem[i], rem[i - 2], rem[i - 1], quo[i]);
-			if(checkRem(rem[i]) == -1){
-				break;
-			}
+			moduleDiv(rem[i], rem[i - 2], rem[i - 1], quo[i], i);
 		}
 	
 		computeAus(aux[i], aux[i - 2], aux[i - 1], quo[i]);
