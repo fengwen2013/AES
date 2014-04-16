@@ -1,45 +1,6 @@
 #include "hw6.h"
 
-
-void arrayCopy1DTo2D(unsigned char state[][4], unsigned char in[], int row, int col){
-	int i = 0;
-	int j = 0;
-	
-	for(i = 0; i < col; i++){
-		for(j = 0; j < row; j++){
-			state[j][i] = in[i * 4 + j];
-		}
-	}
-}
-
-void addRoundKey(unsigned char state[][4], unsigned char w[]){
-
-}
-
-void subBytes(unsigned char state[][4]){
-
-}
-
-void shiftRows(unsigned char state[][4]){
-
-}
-
-void mixColumns(unsigned char state[][4]){
-
-}
-
-void arrayCopy2DTo1D(unsigned char out[], unsigned char state[][4], int row, int col){
-	int i = 0;
-	int j = 0;
-	
-	for(i = 0; i < col; i++){
-		for(j = 0; j < row; j++){
-			out[i * 4 + j] = state[j][i];
-		}
-	}
-}
-
-void printRound(int round, char title[], char value[]){
+void printRound(int round, char title[], unsigned char value[]){
 	int num_space = 9 - strlen(title);
 	int i = 0;
 	
@@ -63,24 +24,119 @@ void printRound(int round, char title[], char value[]){
 	putchar('\n');
 }
 
+void arrayCopy2DTo1D(unsigned char out[], unsigned char state[][4], int row, int col){
+	int i = 0;
+	int j = 0;
+	
+	for(i = 0; i < col; i++){
+		for(j = 0; j < row; j++){
+			out[i * 4 + j] = state[j][i];
+		}
+	}
+}
+
+void printState(int round, char title[], unsigned char state[][4]){
+	unsigned char out[16];
+	
+	arrayCopy2DTo1D(out, state, 4, 4);
+	printRound(round, title, out);
+}
+
+void arrayCopy1DTo2D(unsigned char state[][4], unsigned char in[], int row, int col){
+	int i = 0;
+	int j = 0;
+	
+	for(i = 0; i < col; i++){
+		for(j = 0; j < row; j++){
+			state[j][i] = in[i * 4 + j];
+		}
+	}
+}
+
+void addRoundKey(unsigned char state[][4], unsigned char w[][4], int round){
+	int row = 0, col = 0;
+	unsigned char key[16];
+	
+	for(row = 0; row < 4; row++){
+		for(col = 0; col < 4; col++){
+			key[row * 4 + col] = w[4 * round + row][col];
+		}
+	}
+	
+	printRound(round, "k_sch", key);
+	
+	for(col = 0; col < 4; col++){
+		for(row = 0; row < 4; row++){
+			state[row][col] = state[row][col] ^ w[4 * round + col][row];
+		}
+	}
+
+}
+
+void subBytes(unsigned char state[][4], int round){
+	int i = 0, j = 0;
+	
+	for(i = 0; i < 4; i++){
+		for(j = 0; j < 4; j++){
+			state[i][j] = S[state[i][j]];
+		}
+	}
+	
+	printState(round, "s_box", state);
+}
+
+void shiftRows(unsigned char state[][4], int round){
+	int i = 0;
+	int j = 0;
+	for(i = 1; i < 4; i++){
+		for(j = 0; j < i; j++){
+			leftRotWord(state[i], 4);
+		}
+	}
+
+	printState(round, "s_row", state);
+}
+
+void mixColumns(unsigned char state[][4], int round){
+	unsigned char temp[4];
+	unsigned char temp2[4];
+	int i = 0, j = 0;
+	
+	for(j = 0; j < 4; j++){
+		for(i = 0; i < 4; i++){
+			temp[i] = state[i][j];
+		}
+		modularProduct(temp, P, temp2);
+	
+		for(i = 0; i < 4; i++){
+			state[i][j] = temp2[i];
+		}
+	}
+	
+	printState(round, "m_col", state);
+}
+
+
 void AES_encrypt(unsigned char in[], unsigned char out[], unsigned char w[][4]){
 	unsigned char state[4][NB];
  	int round = 0;
- 
+ 	
  	arrayCopy1DTo2D(state, in, 4, 4);
- 	addRoundKey(state, w[0]);
+ 	printState(0, "input", state);
+ 	addRoundKey(state, w, round);
  
  	for(round = 1; round < NR; round++) {
- 		subBytes(state);
- 		shiftRows(state);
- 		mixColumns(state);
- 		addRoundKey(state, w[round]);
+ 		printState(round, "start", state);
+ 		subBytes(state, round);
+ 		shiftRows(state, round);
+ 		mixColumns(state, round);
+ 		addRoundKey(state, w, round);
  	}
- 	subBytes(state);
- 	shiftRows(state);
- 	addRoundKey(state, w[NR]);
- 	
- 	arrayCopy2DTo1D(out, state, 4, 4);
+ 	printState(round, "start", state);
+ 	subBytes(state, round);
+ 	shiftRows(state, round);
+ 	addRoundKey(state, w, round);
+ 	printState(round, "output", state);
 }
 
 
@@ -102,15 +158,15 @@ void encrypt(unsigned char key[], FILE *ifp){
 	}
 }
 
-void invSubBytes(unsigned char state[][4]){
+void invSubBytes(unsigned char state[][4], int round){
 
 }
 
-void invShiftRows(unsigned char state[][4]){
+void invShiftRows(unsigned char state[][4], int round){
 
 }
 
-void invMixColumns(unsigned char state[][4]){
+void invMixColumns(unsigned char state[][4], int round){
 
 }
 
@@ -119,17 +175,17 @@ void AES_decrypt(unsigned char in[], unsigned char out[], unsigned char w[][4]){
  	int round = 0;
  	
  	arrayCopy1DTo2D(state, in, 4, 4);
- 	addRoundKey(state, w[NR]);
+ 	addRoundKey(state, w,round);
  	
  	for(round=NR-1; round > 0; round--) {
- 		invShiftRows(state);
- 		invSubBytes(state);
- 		addRoundKey(state, w[round]);
- 		invMixColumns(state);
+ 		invShiftRows(state, round);
+ 		invSubBytes(state, round);
+ 		addRoundKey(state, w, round);
+ 		invMixColumns(state, round);
  	}
- 	invShiftRows(state);
- 	invSubBytes(state);
- 	addRoundKey(state, w[0]);
+ 	invShiftRows(state, round);
+ 	invSubBytes(state, round);
+ 	addRoundKey(state, w, round);
  
  	arrayCopy2DTo1D(out, state, 4, 4);
 }

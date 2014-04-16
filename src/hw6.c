@@ -106,7 +106,7 @@ void cryptCommand(char *argv[], int argc, int mode){
 		return;
 	}
 	else{
-		while(i < argc){
+		while(i < 4){
 			if(optionCheck(argv[i], "-k") == 1){
 				key = (unsigned char *)malloc(sizeof(char) * 16);	
 				if(keycheck(argv[i] + 3, key, 32) == -1){
@@ -157,6 +157,11 @@ void modprodCommand(char *argv[], int argc){
 	else{
 		while(i < argc){
 			if(optionCheck(argv[i], "-p1") == 1){
+				if(*(argv[i] + 12)!= 0){
+					fprintf(stderr, "Error: Wrong format of polynomial in p1\n");
+					return;
+				}
+				
 				for(j = 0; j < 8; j++){
 					hexcheck(*(argv[i] + 4 + j), &hex);
 					poly1 = poly1 << 4;
@@ -165,6 +170,11 @@ void modprodCommand(char *argv[], int argc){
 			}
 			else{
 				if(optionCheck(argv[i], "-p2") == 1){
+					if(*(argv[i] + 12)!= 0){
+						fprintf(stderr, "Error: Wrong format of polynomial in p2\n");
+						return;
+					}
+					
 					for(j = 0; j < 8; j++){
 						hexcheck(*(argv[i] + 4 + j), &hex);
 						poly2 = poly2 << 4;
@@ -197,7 +207,9 @@ void inverseCommand(char *argv[], int argc){
 			}
 			else{
 				for(i = 0; i < 8; i++){
-					hexcheck(argv[2][3 + i], &hex);
+					if(hexcheck(argv[2][3 + i], &hex) == 0){
+						return;
+					}
 					poly = poly << 4;
 					poly += hex; 
 				}
