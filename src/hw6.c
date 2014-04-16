@@ -232,7 +232,7 @@ int hexcheck(char c, char *c1){
 			*c1 = c - 'a' + 0xa;
 		}
 		else{
-			fprintf(stdout, "Error: '%c' is not valid hex character!\n", c);
+			fprintf(stdout, "Error: '%c' is not a valid hex character!\n", c);
 			return 0;
 		}
 	}

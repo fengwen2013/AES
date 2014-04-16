@@ -79,7 +79,7 @@ int checkS(FILE *ifp){
 int checkP(unsigned char poly[], FILE *ifp, char *s){
 	char buff[20];
 	if(fgets(buff, 20, ifp) == NULL){
-		fprintf(stderr, "Error: Can not read S-box\n");
+		fprintf(stderr, "Error: There is no \"%s\"\n", s);
 		return -1;
 	}
 	
@@ -88,7 +88,7 @@ int checkP(unsigned char poly[], FILE *ifp, char *s){
 		return -1;
 	}
 	if(strlen(buff+strlen(s)) != 9){
-		fprintf(stderr, "Error: Wrong numbers of values, should be exact 8 hexadecimal digits\n");
+		fprintf(stderr, "Error: Wrong numbers of values from \"%s\", should be exact 8 hexadecimal digits\n", s);
 		return -1;
 	}
 	

@@ -1,6 +1,6 @@
 #include "hw6.h"
 
-char xtime(unsigned char a){
+unsigned char xtime(unsigned char a){
 	if((a & 0x80) == 0x80){
 		return (a << 1) ^ M_X;
 	}
@@ -9,11 +9,11 @@ char xtime(unsigned char a){
 	}
 }
 
-char polySum(unsigned char a, unsigned char b){
+unsigned char polySum(unsigned char a, unsigned char b){
 	return a ^ b;
 }
 
-char polyProduct(unsigned char a, unsigned char b){
+unsigned char polyProduct(unsigned char a, unsigned char b){
 	unsigned char d = 0;
 	unsigned char vx[8];
 	int i = 0;
