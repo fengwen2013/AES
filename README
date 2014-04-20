@@ -1,1 +1,80 @@
-AES
+AES(hw6) Version 1.0 04/15/2014
+
+********************************
+GENERAL INFORMATION
+********************************
+STRUCTURE:
+--------------------------------
+hw6.h    	 : Include all header files and function declarations.
+util.h		 : Include declarations of functions in util.c.
+hw6.c    	 : Handle commands and invoke corresponding functions.
+tablecheck.c : Deal with tablecheck command.
+keyexpand.c  : Deal with keyexpand command.
+modprod.c    : Deal with modprod command.
+inverse.c    : Deal with inverse command.
+crypt.c 	 : Deal with encrypt command and decrypt command.
+util.c  	 : Provides basic functionalities used by almost all programs.
+makefile	 : Complie the program.
+
+
+RUNING ENVIRONMNET: 
+--------------------------------
+Linux, Unix
+
+
+HOW TO COMPILE:
+--------------------------------
+Makefile is included, simply enters:
+    make hw6(or make)
+an executable named hw6 is created.
+
+
+********************************
+GUIDELINE
+********************************
+THE COMMANDLINE SYNTAX:
+--------------------------------
+ 	hw6 tablecheck -t=tablefile
+    hw6 modprod -p1=poly1 -p2=poly2
+    hw6 keyexpand -k=key -t=tablefile
+    hw6 encrypt -k=key -t=tablefile [file]
+    hw6 decrypt -k=key -t=tablefile [file]
+    hw6 inverse -p=poly    
+
+
+THE MEANING of THE COMMANDLINES:
+--------------------------------
+
+tablecheck:  	Check the integrity of tablefile. 
+ 
+modprod	  :  	Perform modular product (modulo {01}x4+{01}) of two polynomials with coefficients in GF(28). The coefficients of the polynomials are represented as hexstrings in poly1 and poly2 (each hexstring has a string length of 8). The first two hex digits correspond to the coefficient for x3, the next two hex digits correspond to the coefficient for x2, etc.
+ 
+keyexpand :  	Perform the key expansion algorithm for AES-128 using key as the 16-byte cipher key in hexstring format (32 characters long). 
+ 
+encrypt	  :  	Encrypts the first 16 bytes of the input using AES-128 driven by tablefile in the ECB mode using key as the encryption key (16 bytes long and in hexstring format). If the filesize of the input is less than 16 bytes, print an error message.
+ 
+decrypt	  :  	Decrypts the first 16 bytes of the input using AES-128 driven by tablefile in the ECB mode using key as the encryption key (16 bytes long and in hexstring format). If the filesize of the input is less than 16 bytes, print an error message. 
+
+inverse	  :  	Calculate the multiplicative inverse (modulo {01}x4+{01}) of the polynomial poly with coefficients in GF(28) using the extended Euclidean algorithm for which Table Method is used to implement.
+
+
+THE OUTPUT FOR THE COMMANDLINES:
+--------------------------------
+tablecheck:  	 The command should produce no output in stdout. All error output must go to stderr.
+ 
+modprod	  :  	 The command should output poly1 CIRCLEX poly2 = poly3 where poly3 is the modular product of poly1 and poly2, and each coefficient of a polynomial is printed as {XX} where XX is a hexstring representing a single byte of data. The first two hex digits correspond to the coefficient for x3, the next two hex digits correspond to the coefficient for x2, etc. For example, if poly1 is 03010102 and poly2 is 0b0d090e, the output should be:
+  {03}{01}{01}{02} CIRCLEX {0b}{0d}{09}{0e} = {00}{00}{00}{01}
+ 
+keyexpand :  	 The command should output all the 44 round keys. Each round key is 4 bytes long and in hexstring format. If the key index is only one digit, use a blank space before it. 
+ 
+encrypt	  :  	 The output of this command should look like page 36 of the FIPS 197 AES specification. Please see page 35 of the FIPS-197 document regarding the definitions of the lines.
+ 
+decrypt	  :  	 The output of this command should look like pages 36 and 37 of the FIPS 197 AES specification. Please see page 35 of the FIPS-197 document regarding the definitions of the lines.
+ 
+inverse	  :  	 The command should output the trace of the execution of the Table Method version of the extended Euclidean algorithm. At step i (i>=3), make the coefficient for x to the power of (6 - i) in rem[i] to be {00} (except when i=6, then \make it to be {01}). At the end of iteration i, check the coefficient for x 5 - i in rem[i] and see if it's {00}. If it is, then terminate and print that there is no inverse.
+
+********************************
+CONTACT IMFORMATION:
+********************************
+Email:	 fengwen@usc.edu
+Website: www-scf.usc.edu/~fengwen
